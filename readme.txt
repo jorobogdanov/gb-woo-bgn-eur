@@ -4,7 +4,7 @@ Tags: woocommerce, currency, eur, dual currency
 Requires at least: 5.5
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1
+Stable tag: 1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,12 @@ Yes. Prices for variations are also displayed in both currencies.
 2. Plugin settings page
 
 == Changelog ==
+
+= 1.3 =
+* Fixed a bug where second price in euro for the old price was not removed for variable products when this options is active in the settings.
+
+= 1.2 =
+* A correction has been made of the mark up of the secondary currency.
 
 = 1.1 =
 * Removed parentheses around the EUR price and added a slash (/) as a separator.

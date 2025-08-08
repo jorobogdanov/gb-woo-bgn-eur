@@ -3,7 +3,7 @@
 Plugin Name: GB BGN + EUR for WooCommerce 
 Plugin URI: https://gbogdanov.com/bg/product/dvoyno-pokazvane-na-tsenite-v-bgn-i-eur/
 Description: Двойно показване на цените в BGN и EUR за WooCommerce магазини
-Version: 1.2
+Version: 1.3
 Author: Georgi Bogdanov
 Author URI: https://gbogdanov.com
 License: GPL v2 or later
@@ -163,20 +163,36 @@ function gb_custom_price_format( $formatted_price, $price, $args ) {
 	
 	global $product;
     
-    // Handle sale price hiding logic (keep your existing logic)
-    if ( $product instanceof WC_Product &&
-         get_option( 'hide_sale_eur_price' ) === 'yes' &&
-         $product->is_on_sale() ) {
+    if ( $product instanceof WC_Product && 'yes' === get_option( 'hide_sale_eur_price' ) && $product->is_on_sale() ) {
 
-        $regular_price_from_product = $product->get_regular_price();
         $price_input_standardized = wc_format_decimal( $price, wc_get_price_decimals() );
-        $regular_price_object_standardized = wc_format_decimal( $regular_price_from_product, wc_get_price_decimals() );
-		
-        if ( !empty( $regular_price_from_product ) && 
-             is_numeric( $price_input_standardized ) && 
-             is_numeric( $regular_price_object_standardized ) && 
-             abs( (float)$price_input_standardized - (float)$regular_price_object_standardized ) < 0.00001 ) {
-             return $formatted_price;
+        $match_regular_price      = false;
+
+        if ( $product->is_type( 'variable' ) ) {
+            // Check against all variation regular prices
+            foreach ( $product->get_children() as $variation_id ) {
+                $variation = wc_get_product( $variation_id );
+                if ( ! $variation ) {
+                    continue;
+                }
+
+                $regular_price_variation = wc_format_decimal( $variation->get_regular_price(), wc_get_price_decimals() );
+                if ( is_numeric( $regular_price_variation ) && abs( (float) $price_input_standardized - (float) $regular_price_variation ) < 0.00001 ) {
+                    $match_regular_price = true;
+                    break;
+                }
+            }
+        } else {
+            // Simple or other product types
+            $regular_price_object_standardized = wc_format_decimal( $product->get_regular_price(), wc_get_price_decimals() );
+            if ( is_numeric( $regular_price_object_standardized ) && abs( (float) $price_input_standardized - (float) $regular_price_object_standardized ) < 0.00001 ) {
+                $match_regular_price = true;
+            }
+        }
+
+        // If matched, return without adding secondary currency
+        if ( $match_regular_price ) {
+            return $formatted_price;
         }
     }
  
